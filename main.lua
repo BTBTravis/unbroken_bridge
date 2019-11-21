@@ -34,7 +34,27 @@ function drawGrid()
     resetColor()
 end
 
+function loadWater()
+    wavesSprite = love.graphics.newImage("art/waves.png")
+    wavesSprite:setFilter('nearest', 'nearest')
+    local width = wavesSprite:getWidth()
+    local height = wavesSprite:getHeight()
+    wavesFrames = {}
+    local frame_width = 32
+    local frame_height = 36
 
+    for i = 0, 32 do
+        table.insert(wavesFrames, love.graphics.newQuad(i * frame_width, 0, frame_width, frame_height, width, height))
+    end
+end
+
+function drawWater()
+    for x = 0, 4 do
+        for y = 0, 3 do
+            love.graphics.draw(wavesSprite, wavesFrames[math.floor(waterFrame)], x * 32 - worldOffset.x, y * 36)
+        end
+    end
+end
 
 
 -- globals
@@ -58,6 +78,12 @@ function love.load()
             table.insert(track, {sprite = dock_blank, x = 32 * i, y = 36})
         end
     end
+
+    -- water animation
+    loadWater()
+
+    -- init globals
+    waterFrame = 1
 end
 
 
@@ -71,14 +97,22 @@ function love.draw()
     love.graphics.translate(worldOffset.x, worldOffset.y)
     love.graphics.setBackgroundColor(colors.gray2)
 
+    -- draw water
+    drawWater()
+
     -- drack track
     for i = 1, #track do  -- #v is the size of v for lists.
         love.graphics.draw(track[i].sprite, track[i].x, track[i].y)
     end
-
-
 end
 
 function love.update(dt)
   worldOffset.x = worldOffset.x - 30 * dt
+
+  -- handle water animation
+  waterFrame = waterFrame + dt + 0.25
+  if waterFrame >= 32 then
+      waterFrame = 1
+  end
 end
+
