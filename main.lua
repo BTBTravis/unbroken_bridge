@@ -65,19 +65,61 @@ track = {}
 -- love callbacks
 function love.load()
     love.window.setMode(160 * scaleMutiplier, 144 * scaleMutiplier) -- gameboy screen size
-    dock_with_pole = loadImage("art/dock_piece_small.png")
-    dock_blank = loadImage("art/dock_piece_small_blank.png")
+    dock_with_pole_img = loadImage("art/dock_piece_small.png")
+    dock_blank_img = loadImage("art/dock_piece_small_blank.png")
+    dock_up_img = loadImage("art/dock_piece_up.png")
+    dock_down_img = loadImage("art/dock_piece_down.png")
 
+    dock_with_pole = { sp = dock_with_pole_img, changeY = 0, changeX = 1, offsetY = 1 }
+    dock_blank = { sp = dock_blank_img, changeY = 0, changeX = 1, offsetY = 1 }
+    dock_up = { sp = dock_up_img, changeY = 1, changeX = 3, offsetY = 2 }
+    dock_down = { sp = dock_down_img, changeY = 1, changeX = 3, offsetY = 2 }
 
     -- gen track
-    for i = 0, 300 do  -- The range includes both ends.
-	r = tileRandomGen:random(1,2)
-        if r == 1 then
-            table.insert(track, {sprite = dock_with_pole, x = 32 * i, y = 36})
-        else
-            table.insert(track, {sprite = dock_blank, x = 32 * i, y = 36})
+    local trackLvl = 2
+    local trackEndX = 0
+
+    function insertWithPole()
+        table.insert(track, {segment = dock_with_pole, x = trackEndX, y = trackLvl * 36})
+        trackEndX = trackEndX + 32
+    end
+
+    function insertBlank()
+        table.insert(track, {segment = dock_blank, x = trackEndX, y = trackLvl * 36})
+        trackEndX = trackEndX + 32
+    end
+
+    function insertUp()
+        if trackLvl >= 1 then
+            table.insert(track, {segment = dock_up, x = trackEndX, y = trackLvl * 36 - 36})
+            trackEndX = trackEndX + (32 * 3)
+            trackLvl = trackLvl - 1
         end
     end
+
+    function insertDown()
+        if trackLvl <= 2 then
+            table.insert(track, {segment = dock_down, x = trackEndX, y = trackLvl * 36})
+            trackEndX = trackEndX + (32 * 3)
+            trackLvl = trackLvl + 1
+        end
+    end
+
+
+    local count = 0
+    repeat
+        local r = tileRandomGen:random(1,4)
+        if r == 1 then
+            insertWithPole()
+        elseif r == 2 then --up
+            insertBlank()
+        elseif r == 3 then --up
+            insertDown()
+        elseif r == 4 then --up
+            insertUp()
+        end
+        count = count + 1
+    until count > 300
 
     -- water animation
     loadWater()
@@ -88,10 +130,8 @@ end
 
 
 function love.draw()
-    -- love.graphics.setBackgroundColor({0.5, 0.5, 0.5, 1})
-    --love.graphics.print('Hello World! Fuck you', 400, 300)
     -- draw stuff at scale 1, like dev stuff
-    drawGrid()
+    --drawGrid()
     -- setup
     love.graphics.scale(4)
     love.graphics.translate(worldOffset.x, worldOffset.y)
@@ -102,17 +142,17 @@ function love.draw()
 
     -- drack track
     for i = 1, #track do  -- #v is the size of v for lists.
-        love.graphics.draw(track[i].sprite, track[i].x, track[i].y)
+        love.graphics.draw(track[i].segment.sp, track[i].x, track[i].y)
     end
 end
 
 function love.update(dt)
-  worldOffset.x = worldOffset.x - 30 * dt
+    worldOffset.x = worldOffset.x - 30 * dt
 
-  -- handle water animation
-  waterFrame = waterFrame + dt + 0.25
-  if waterFrame >= 32 then
-      waterFrame = 1
-  end
+    -- handle water animation
+    waterFrame = waterFrame + dt + 0.25
+    if waterFrame >= 32 then
+	waterFrame = 1
+    end
 end
 
