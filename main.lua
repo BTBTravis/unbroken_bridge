@@ -59,7 +59,7 @@ end
 
 -- globals
 worldOffset = { x = 0, y = 0}
-tileRandomGen = love.math.newRandomGenerator()
+tileRandomGen = love.math.newRandomGenerator(2)
 track = {}
 
 -- love callbacks
@@ -108,15 +108,29 @@ function love.load()
 
     local count = 0
     repeat
-        local r = tileRandomGen:random(1,4)
-        if r == 1 then
-            insertWithPole()
-        elseif r == 2 then --up
-            insertBlank()
-        elseif r == 3 then --up
-            insertDown()
-        elseif r == 4 then --up
-            insertUp()
+        local r = tileRandomGen:random(0,100)
+        local r1 = tileRandomGen:random(1,2)
+
+        if r <= 15 then
+            if r1 == 1 then
+                insertDown()
+                insertDown()
+            else
+                insertUp()
+                insertUp()
+            end
+        elseif r > 15 and r <= 80 then
+            if r1 == 1 then
+                insertWithPole()
+            else
+                insertBlank()
+            end
+        else
+            if r1 == 1 then
+                insertDown()
+            else
+                insertUp()
+            end
         end
         count = count + 1
     until count > 300
@@ -146,8 +160,9 @@ function love.draw()
     end
 end
 
+speed = 50
 function love.update(dt)
-    worldOffset.x = worldOffset.x - 30 * dt
+    worldOffset.x = worldOffset.x - speed * dt
 
     -- handle water animation
     waterFrame = waterFrame + dt + 0.25
